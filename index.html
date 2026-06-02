@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GBM Metrica Logs</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23002d5b'/><path d='M30 70 h40 M35 70 V50 M50 70 V35 M65 70 V55' stroke='white' stroke-width='8' stroke-linecap='round'/></svg>">
+    <style>
+        :root {
+            --primary: #002d5b;
+            --primary-light: #e6f0fa;
+            --accent: #0056b3;
+            --text-dark: #1a1a1a;
+            --text-muted: #4a5568;
+            --sidebar-width: 280px;
+            --bg-body: #f7fafc;
+            --bg-white: #ffffff;
+            --border-color: #e2e8f0;
+            --card-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            --header-height: 64px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Offset para evitar que los elementos queden ocultos bajo el header fijo */
+        [id] {
+            scroll-margin-top: calc(var(--header-height) + 20px);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: var(--bg-body);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 20px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .meta-bar {
+            display: none;
+        }
+
+        .meta-item strong {
+            color: var(--primary);
+        }
+
+        main {
+            margin-top: var(--header-height);
+            padding: 40px 20px;
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-left: var(--sidebar-width);
+            flex: 1;
+        }
+
+        body.sidebar-collapsed main, body.sidebar-collapsed footer {
+            margin-left: 0;
+        }
+
+        section {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--bg-white);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        section.active {
+            display: block;
+        }
+
+        @keyframes fadeInPage {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border-color);
+            font-weight: 700;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        code {
+            background: #edf2f7;
+            color: #c53030;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 0.9em;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin: 25px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+            text-align: left;
+            padding: 12px 15px;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tr:nth-child(even) {
+            background-color: var(--bg-light);
+        }
+
+        ol, ul {
+            margin-bottom: 20px;
+        }
+
+        main ul {
+            padding-left: 25px;
+        }
+
+        main ol {
+            list-style: none;
+            counter-reset: step-counter;
+            padding-left: 0;
+        }
+
+        main ol > li {
+            counter-increment: step-counter;
+            position: relative;
+            padding-left: 55px;
+            margin-bottom: 35px;
+        }
+
+        main ol > li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: -2px;
+            width: 36px;
+            height: 36px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        main ol > li:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 17px;
+            top: 40px;
+            height: calc(100% - 15px);
+            width: 2px;
+            background-color: var(--border-color);
+        }
+
+        /* Animación para los pasos de importación */
+        @keyframes slideInStep {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        #importacion.active ol > li {
+            opacity: 0;
+            animation: slideInStep 0.5s ease forwards;
+        }
+
+        #importacion.active ol > li:nth-child(1) { animation-delay: 0.1s; }
+        #importacion.active ol > li:nth-child(2) { animation-delay: 0.2s; }
+        #importacion.active ol > li:nth-child(3) { animation-delay: 0.3s; }
+        #importacion.active ol > li:nth-child(4) { animation-delay: 0.4s; }
+        #importacion.active ol > li:nth-child(5) { animation-delay: 0.5s; }
+        #importacion.active ol > li:nth-child(6) { animation-delay: 0.6s; }
+        #importacion.active ol > li:nth-child(7) { animation-delay: 0.7s; }
+
+        main li {
+            margin-bottom: 12px;
+        }
+
+        .sub-list {
+            margin-top: 25px;
+            list-style-type: none;
+            padding-left: 0;
+            border-left: none;
+            counter-reset: sub-step;
+        }
+
+        .sub-list > li {
+            counter-increment: sub-step;
+            position: relative;
+            padding-left: 55px;
+            margin-bottom: 35px;
+        }
+
+        .sub-list > li::before {
+            content: "3.3." counter(sub-step);
+            position: absolute;
+            left: 0;
+            top: -2px;
+            width: 36px;
+            height: 36px;
+            background-color: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .image-container {
+            background-color: var(--bg-light);
+            border: 2px dashed #b8c6d4;
+            border-radius: 6px;
+            padding: 40px 20px;
+            margin: 20px 0 30px 0;
+            text-align: center;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .image-container:hover {
+            border-color: var(--accent);
+            background-color: var(--primary-light);
+        }
+
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            cursor: zoom-in;
+            transition: transform 0.2s ease;
+        }
+
+        .image-container img:hover {
+            transform: scale(1.02);
+        }
+
+        /* Lightbox Modal */
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+        }
+
+        .image-modal img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .side-nav {
+            position: fixed;
+            left: 0;
+            top: var(--header-height);
+            width: var(--sidebar-width);
+            height: calc(100vh - var(--header-height));
+            background-color: #ffffff;
+            border-right: 1px solid var(--border-color);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            padding: 20px 0;
+            overflow-y: auto;
+        }
+
+        .side-nav h3 {
+            padding: 0 25px 10px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+
+        .side-nav ul {
+            list-style: none;
+        }
+
+        .side-nav ul li a {
+            display: block;
+            padding: 10px 25px;
+            color: var(--text-dark);
+            text-decoration: none;
+            font-size: 0.95rem;
+            border-left: 4px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .side-nav ul li a:hover {
+            background-color: var(--bg-light);
+            color: var(--accent);
+        }
+
+        .side-nav ul li a.active {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border-left-color: var(--primary);
+            font-weight: 600;
+        }
+
+        .side-nav ul li.nav-sub-item a {
+            padding-left: 45px;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+        }
+
+        /* Estilos para Submenús Colapsables */
+        .has-submenu {
+            position: relative;
+        }
+
+        .has-submenu > a {
+            padding-right: 45px !important;
+        }
+
+        .submenu-arrow {
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 5px;
+            transition: transform 0.3s ease;
+            z-index: 2;
+        }
+
+        .has-submenu.expanded > .submenu-arrow {
+            transform: rotate(180deg);
+        }
+
+        .sub-menu {
+            display: none;
+            list-style: none;
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        .has-submenu.expanded > .sub-menu {
+            display: block;
+        }
+
+        .side-nav ul li.nav-sub-sub-item a {
+            padding-left: 65px;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .badge-required {
+            display: inline-block;
+            background-color: #c53030;
+            color: white;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            vertical-align: middle;
+            line-height: 1;
+        }
+
+        .side-nav ul li a.nav-download {
+            background-color: #f0fff4;
+            color: #2f855a;
+            font-weight: 700;
+            border-left-color: #38a169;
+        }
+
+        .menu-toggle {
+            position: absolute;
+            left: 20px;
+            display: block;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 950;
+            transition: opacity 0.3s ease;
+        }
+
+        .header-download-btn {
+            position: absolute;
+            right: 20px;
+            background-color: #38a169;
+            color: white !important;
+            text-decoration: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-download-btn:hover {
+            background-color: #2f855a;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        body.sidebar-collapsed .side-nav {
+            transform: translateX(-100%);
+        }
+
+        .image-container svg {
+            width: 50px;
+            height: 50px;
+            fill: #8aa0b5;
+            margin-bottom: 12px;
+        }
+
+        .image-label {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 5px;
+            font-size: 1.05rem;
+        }
+
+        .image-placeholder-text {
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+
+        .note {
+            background-color: var(--primary-light);
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            border-radius: 0 6px 6px 0;
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+
+        .note strong {
+            color: var(--primary);
+        }
+
+        .note-warning {
+            background-color: #fffaf0;
+            border-left: 4px solid #ed8936;
+            padding: 15px;
+            border-radius: 0 6px 6px 0;
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+
+        .note-success {
+            background-color: #f0fff4;
+            border-left: 4px solid #38a169;
+            padding: 15px;
+            border-radius: 0 6px 6px 0;
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+
+        .note-success strong {
+            color: #2f855a;
+        }
+
+        .note-danger {
+            background-color: #fff5f5;
+            border-left: 4px solid #f56565;
+            padding: 15px;
+            border-radius: 0 6px 6px 0;
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+
+        .note-danger strong {
+            color: #c53030;
+        }
+
+        .icon-download {
+            width: 1.1rem;
+            height: 1.1rem;
+            fill: currentColor;
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            display: none; /* Oculto por defecto */
+        }
+
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--primary);
+            color: white !important;
+            padding: 8px 18px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Estilos para resaltar el nombre dentro del tag */
+        .qa-tag span:first-child {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Animación de entrada suave para los tags de QA */
+        @keyframes fadeInUpTag {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #equipo.active .qa-tag {
+            opacity: 0;
+            animation: fadeInUpTag 0.4s ease forwards;
+        }
+
+        #equipo.active .qa-tag:nth-child(1) { animation-delay: 0.1s; }
+        #equipo.active .qa-tag:nth-child(2) { animation-delay: 0.2s; }
+        #equipo.active .qa-tag:nth-child(3) { animation-delay: 0.3s; }
+        #equipo.active .qa-tag:nth-child(4) { animation-delay: 0.4s; }
+        #equipo.active .qa-tag:nth-child(5) { animation-delay: 0.5s; }
+
+        .qa-tag:hover {
+            background-color: var(--primary);
+            color: white !important;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-download:hover {
+            background-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .status-upcoming {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: #f1f5f9;
+            padding: 4px 12px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            cursor: default;
+        }
+
+        footer {
+            text-align: center;
+            padding: 8px 20px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.8rem;
+            background-color: var(--primary);
+            position: relative;
+            z-index: 1200;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        footer p {
+            text-align: center;
+        }
+
+        @media (max-width: 992px) {
+            main {
+                margin-left: 0;
+                padding: 20px;
+            }
+            .side-nav {
+                transform: translateX(-100%);
+                box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+            }
+            body:not(.sidebar-collapsed) .sidebar-overlay {
+                display: block;
+            }
+            body:not(.sidebar-collapsed) .side-nav {
+                transform: translateX(0);
+            }
+            .header-download-btn span {
+                display: none;
+            }
+            .header-download-btn {
+                padding: 8px;
+                right: 15px;
+            }
+            .back-to-top {
+                display: flex; /* Mostrar solo en móviles */
+            }
+            .back-to-top.visible {
+                opacity: 1;
+                visibility: visible;
+                transform: translateY(0);
+            }
+        }
+
+        /* Optimizaciones extra para teléfonos pequeños (Mobile-First specific) */
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 1rem;
+                margin-left: 45px; /* Espacio para el botón de hamburguesa */
+            }
+            section {
+                padding: 25px 15px;
+                border-radius: 0; /* Aprovecha mejor los bordes en pantallas mini */
+            }
+            h2 {
+                font-size: 1.3rem;
+            }
+            main ol > li {
+                padding-left: 45px; /* Menos espacio para los números de pasos */
+                margin-bottom: 25px;
+            }
+            main ol > li::before {
+                width: 32px;
+                height: 32px;
+                font-size: 0.9rem;
+            }
+            main ol > li:not(:last-child)::after {
+                left: 15px;
+            }
+            .sub-list > li {
+                padding-left: 45px;
+            }
+            .sub-list > li::before {
+                width: 32px;
+                height: 32px;
+            }
+            .side-nav ul li.nav-sub-item a { padding-left: 30px; }
+            .side-nav ul li.nav-sub-sub-item a { padding-left: 45px; }
+            .qa-tag { width: 100%; } /* Los tags de equipo ocupan todo el ancho en móviles muy pequeños */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="image-modal" id="imageModal">
+        <img id="modalImg" src="" alt="Vista ampliada">
+    </div>
+
+    <button id="backToTop" class="back-to-top" title="Volver arriba">↑</button>
+
+    <header>
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <h1>GBM Documentation | Metrica Logs</h1>
+        <a href="#descarga" class="header-download-btn" id="headerDownloadBtn">
+            <svg class="icon-download" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            <span>Descargar Automatización</span>
+        </a>
+    </header>
+
+    <nav class="side-nav" id="sideNav">
+        <h3>Contenido</h3>
+        <ul>
+            <li><a href="#introduccion" class="active">1. Introducción</a></li>
+            <li><a href="#logica">2. Lógica de Automatización</a></li>
+            <li class="has-submenu">
+                <a href="#instalacion">3. Guía de Instalación <span class="badge-required">Automatización</span></a>
+                <span class="submenu-arrow">▼</span>
+                <ul class="sub-menu">
+                    <li class="nav-sub-item"><a href="#acceso-portal">3.1 Acceso al Portal</a></li>
+                    <li class="nav-sub-item"><a href="#verificacion-entorno">3.2 Entorno Corporativo</a></li>
+                    <li class="has-submenu nav-sub-item">
+                        <a href="#gestion-conexiones">3.3 Gestión de Conexiones</a>
+                        <span class="submenu-arrow">▼</span>
+                        <ul class="sub-menu">
+                            <li class="nav-sub-sub-item"><a href="#step-connection-users">3.3.1 Office 365 Users</a></li>
+                            <li class="nav-sub-sub-item"><a href="#step-connection-outlook">3.3.2 Office 365 Outlook</a></li>
+                            <li class="nav-sub-sub-item"><a href="#step-connection-mail">3.3.3 Mail</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-sub-item"><a href="#revisar-conexiones">3.4 Revisión Técnica</a></li>
+                    <li class="nav-sub-item"><a href="#preparacion-archivo">3.5 Paquete de Solución</a></li>
+                    <li class="nav-sub-item"><a href="#ejecutar-importacion">3.6 Importación de Flujo</a></li>
+                    <li class="nav-sub-item"><a href="#asignacion-recursos">3.7 Mapeo de Recursos</a></li>
+                    <li class="nav-sub-item"><a href="#activacion-final">3.8 Activación de Alerta</a></li>
+                </ul>
+            </li>
+            <li class="has-submenu">
+                <a href="#config-rules">4. Reglas de correo ControlDesk</a>
+                <span class="submenu-arrow">▼</span>
+                <ul class="sub-menu">
+                    <li class="nav-sub-item"><a href="#rules-step-1">4.1 Modo Edición</a></li>
+                    <li class="nav-sub-item"><a href="#rules-step-4">4.2 Configuración del Trigger</a></li>
+                    <li class="nav-sub-item"><a href="#rules-step-8">4.3 Verificación de Término</a></li>
+                    <li class="nav-sub-item"><a href="#rules-step-15">4.4 Guardado y Activación</a></li>
+                </ul>
+            </li>
+            <li><a href="#troubleshooting">5. Troubleshooting</a></li>
+            <li><a href="#descarga" class="nav-download">6. Descargar Automatización</a></li>
+            <li><a href="#equipo">7. Equipo de Desarrollo</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section id="introduccion">
+            <h2>1. Introducción y Propósito</h2>
+            <p>¡Hola equipo! Esta herramienta nace como una <strong>iniciativa personal desarrollada en tiempo libre</strong> para ayudar a cumplir con la <strong style="color: var(--accent);">nueva métrica operativa de este 2026</strong>. Ahora que tenemos <em>deadline</em> para la actualización de logs, esta Automatización puede ayudar a evitar romper esta métrica.</p>
+
+            <div class="note-danger">
+                <strong>⚠️ Nota Importante:</strong> Esta herramienta <strong>no pretende ser obligatoria</strong>, sino una opción adicional para facilitar nuestro flujo de trabajo. Si usted se siente cómodo realizando la actualización de logs de forma manual y prefiere no cambiar su metodología actual, continue haciéndolo así sin ningún inconveniente. ¡La idea es apoyar, no imponer!
+            </div>
+
+            <div class="note-success">
+                <strong>🎯 Alcance Actual:</strong> De momento, la automatización está optimizada para trabajar exclusivamente con <strong>Incidentes (IN)</strong> y <strong>Service Requests (SR)</strong> normales asignados directamente desde <strong>ControlDesk</strong>.
+            </div>
+
+            <p><strong>¡Esto es de todos!</strong> Al ser un proyecto interno, el código y la lógica están <strong>completamente abiertos</strong> y propiedad de GBM. Si tienes una idea para optimizar los tiempos, añadir alertas o simplificar la integración, <strong style="color: var(--primary);">cualquier mejora es más que bienvenida</strong>. La meta es que colaboremos como ingenieros para que nuestro día a día sea más sencillo y nuestras métricas no se impacten. ¡Haz que esta Automatizacion sencilla crezca!</p>
+
+            <div class="note">
+                <strong>¿Cómo funciona el margen preventivo?</strong> Para que estemos seguros, las alertas se disparan así:
+                <ul style="margin-top: 10px; margin-bottom: 0;">
+                    <li><strong>Incidentes (IN):</strong> Recordatorio cada <strong>2 días</strong>.</li>
+                    <li><strong>Service Requests (SR):</strong> Recordatorio cada <strong>6 días</strong>.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="logica">
+            <h2>2. Logica de Automatización</h2>
+            <div class="note-success">
+                <strong>¿Cómo me ayuda esto?</strong><br>
+                El flujo está configurado para avisarle <strong>24 horas antes</strong> de que la métrica se impacte definitivamente. Esto le otorga un margen de maniobra para actualizar el log incluso en días de alta carga laboral.
+            </div>
+
+            <p>El "corazón" de esta automatización es un flujo de decisión que analiza cada correo entrante para determinar su prioridad. El flujo opera bajo un modelo de <strong>cuatro etapas críticas</strong>:</p>
+            
+            <ul>
+                <li><strong>1. Identificación:</strong> El flujo extrae el ID del caso y detecta si es un <strong>Incidente</strong> o un <strong>Service Request</strong>.</li>
+                <li><strong>2. Espera Preventiva:</strong> Se activa un temporizador que "duerme" el flujo, esperando a que se cumpla el plazo segun sea el tipo de caso.</li>
+                <li><strong>3. Validación y Alerta:</strong> 24h antes de que el SLA expire, el flujo se "despierta" y envía el recordatorio de logs a su bandeja de entrada.</li>
+                <li><strong>4. Terminación Inteligente:</strong> Si el flujo detecta un correo de <code>controldesk@gbm.net</code> indicando que el caso ha sido <strong>Completado</strong>, la automatización se detiene para ese caso específico.</li>
+            </ul>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="background-color: var(--primary);">Clasificación del Ticket</th>
+                            <th style="background-color: var(--primary);">Recordatorio Enviado</th>
+                            <th style="background-color: var(--primary);">Límite de la Métrica (SLA)</th>
+                            <th style="background-color: var(--primary);">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span style="color: var(--accent); font-weight: bold;">Incidente (IN)</span></td>
+                            <td><strong>Día 2</strong></td>
+                            <td>Día 3 (Sin actualización)</td>
+                            <td>Notificación de Logs</td>
+                        </tr>
+                        <tr>
+                            <td><span style="color: var(--accent); font-weight: bold;">Service Request (SR)</span></td>
+                            <td><strong>Día 6</strong></td>
+                            <td>Día 7 (Sin actualización)</td>
+                            <td>Notificación de Logs</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="note-success">
+                <strong>🚀 Tip de Productividad: Actualización Automática</strong><br>
+                Si usted realiza un <strong>Reply (Responder)</strong> al correo de recordatorio generado por este flujo e incluye a <code>controldesk@gbm.net</code> como destinatario, <strong>ControlDesk</strong> procesará su respuesta y <strong>actualizará los logs del caso automáticamente</strong>. No se requiere ninguna intervención manual adicional en el portal de ControlDesk.
+            </div>
+
+            <div class="note">
+                <strong>Nota de Sincronización:</strong> Esta automatización <strong>no detecta</strong> si se realiza una actualización de logs manual directamente en el portal de ControlDesk una vez que el flujo ha iniciado. El recordatorio se enviará basándose únicamente en el tiempo transcurrido desde la asignación original o el último disparo del flujo.
+            </div>
+
+            <div class="note-danger">
+                <strong>⚠️ Nota Importante de Visibilidad:</strong><br>
+                Los logs actualizados en los casos son <strong>"Visualizable"</strong>, lo cual quiere decir que el cliente que abrió el ticket tendrá acceso a revisar estos logs. Esto es una característica intrínseca de <strong>ControlDesk</strong> y no puede ser modificada mediante esta automatización.
+            </div>
+
+            <h3 style="color: var(--primary); margin: 30px 0 15px 0; font-size: 1.2rem;">Visualización de Alertas y Respuesta Rápida</h3>
+            <p>Al cumplirse los tiempos preventivos, usted recibirá un <strong>correo de recordatorio</strong> con un formato estandarizado. Este mensaje le servirá como disparador para realizar la actualización pendiente sin necesidad de monitorear manualmente sus fechas de vencimiento.</p>
+
+            <div class="image-container">
+                <img src="images/seccion2/log-example-sr.png" alt="Ejemplo de Notificación de Recordatorio">
+                <div class="image-label">Figura 2.1: Ejemplo de Notificación de Recordatorio</div>
+            </div>
+
+            <p>Una de las funciones más potentes de esta automatización es la <strong>Actualización por Respuesta (Reply)</strong>. Si usted responde al correo de recordatorio e incluye a <code>controldesk@gbm.net</code> en los destinatarios, <strong>ControlDesk</strong> procesará el cuerpo de su correo como un log oficial del caso, cerrando el ciclo de actualización de forma inmediata.</p>
+
+            <div class="image-container">
+                <img src="images/seccion2/reply-update-logs.png" alt="Ejemplo de Respuesta para Actualización de Logs">
+                <div class="image-label">Figura 2.2: Ejemplo de Respuesta para Actualización de Logs</div>
+            </div>
+            <div class="image-container">
+                <img src="images/seccion2/reply-update-controldesk.png" alt="Logs actualizados para el caso en ControlDesk">
+                <div class="image-label">Figura 2.3: Logs actualizados en ControlDesk</div>
+            </div>
+        </section>
+
+        <section id="instalacion">
+            <h2>3. Guía Paso a Paso para la Importación de Automatización</h2>
+            <p>Siga cuidadosamente este procedimiento técnico para implementar la automatización en su entorno corporativo de Power Automate. Este proceso asegura que el flujo opere bajo su identidad digital de GBM.</p>
+            
+            <ol>
+                <li id="acceso-portal">
+                    <strong>Acceso al Portal:</strong> Inicie sesión en <a href="https://make.powerautomate.com" target="_blank" rel="noopener noreferrer">Microsoft Power Automate</a> utilizando sus credenciales institucionales de <strong>GBM</strong>.
+                    <div class="image-container">
+                        <img src="images/seccion3/power-login.png" alt="Pantalla de inicio de Power Automate">
+                        <div class="image-label">Figura 1: Pantalla de inicio de Power Automate</div>
+                    </div>
+                </li>
+                
+                <li id="verificacion-entorno">
+                    Asegúrese de encontrarse en el entorno de trabajo correcto en la esquina superior derecha: <strong>GBM Corporación</strong>.
+                    <div class="image-container">
+                        <img src="images/seccion3/environment-check.png" alt="Verificación del entorno GBM Corporación">
+                        <div class="image-label">Figura 2: Verificación del entorno GBM Corporación</div>
+                    </div>
+                </li>
+
+                <li id="gestion-conexiones">
+                    <strong>Gestión de Conexiones (Pre-requisito):</strong> Antes de importar, garantice los permisos necesarios. 
+                    Diríjase a <strong>Menu lateral > Conexiones</strong> y seleccione <strong>"Nueva conexión"</strong> para los siguientes servicios.
+                    <div class="image-container">
+                                <img src="images/seccion3/create-connection.png" alt="Pantalla de creacion de Conexion.">
+                                <div class="image-label">Figura 3: Pantalla de creacion de Conexion.</div>
+                    </div>
+                    <ol class="sub-list">
+                        <li id="step-connection-users">
+                            <strong>Office 365 Users:</strong> Permite identificar al ingeniero asignado al caso.
+                            Buscamos esa conexión y damos clic en él “+” en la columna Actions. 
+                            <div class="image-container">
+                                <img src="images/seccion3/conexion-o365users-1.png" alt="Conexion Office 365 Users de Power Automate.">
+                                <div class="image-label">Conexión 1.1: Conexion Office 365 Users de Power Automate.</div>
+                            </div>
+                            <div class="image-container">
+                                <img src="images/seccion3/conexion-o365users-2.png" alt="Conexion Office 365 Users de Power Automate.">
+                                <div class="image-label">Conexión 1.2: Conexion Office 365 Users de Power Automate.</div>
+                            </div>
+                            <div class="image-container">
+                                <img src="images/seccion3/conexion-o365users-3.png" alt="Conexion Office 365 Users de Power Automate.">
+                                <div class="image-label">Conexión 1.3: Conexion Office 365 Users de Power Automate.</div>
+                            </div>
+                            <div class="image-container">
+                                <img src="images/seccion3/conexion-o365users-4.png" alt="Conexion Office 365 Users de Power Automate.">
+                                <div class="image-label">Conexión 1.4: Conexion Office 365 Users de Power Automate.</div>
+                            </div>
+                            <div class="image-container">
+                                <img src="images/seccion3/conexion-o365users-5.png" alt="Conexion Office 365 Users de Power Automate.">
+                                <div class="image-label">Conexión 1.5: Conexion Office 365 Users de Power Automate.</div>
+                            </div>
+                            Ahora clic en <strong>Nueva conexión</strong> para crear la segunda conexión.
+                        </li>
+                        <li id="step-connection-outlook">
+                            <strong>Office 365 Outlook:</strong> Necesario para el monitoreo de la bandeja de entrada.
+                            Buscamos esa conexión y damos clic en él “+” en la columna Actions
+                            <div class="image-container">
+                                <img src="images/seccion3/conexion-o365outlook-1.png" alt="Conexion Office 365 Outlook de Power Automate.">
+                                <div class="image-label">Conexión 2.1: Conexion Office 365 Outlook de Power Automate.</div>
+                            </div>
+                            <div class="image-container">
+                                <img src="images/seccion3/conexion-o365outlook-2.png" alt="Conexion Office 365 Outlook de Power Automate.">
+                                <div class="image-label">Conexión 2.2: Conexion Office 365 Outlook de Power Automate.</div>
+                            </div>
+                            <div class="image-container">
+                                <img src="images/seccion3/conexion-o365outlook-3.png" alt="Conexion Office 365 Outlook de Power Automate.">
+                                <div class="image-label">Conexión 2.3: Conexion Office 365 Outlook de Power Automate.</div>
+                            </div>
+                            <div class="image-container">
+                                <img src="images/seccion3/conexion-o365outlook-4.png" alt="Conexion Office 365 Outlook de Power Automate.">
+                                <div class="image-label">Conexión 2.4: Conexion Office 365 Outlook de Power Automate.</div>
+                            </div>
+                        </li>
+                        <li id="step-connection-mail">
+                            <strong>Mail:</strong> Para el envío de notificaciones del sistema. (<em>Nota:</em> Si no aparece, cree un flujo instantáneo temporal para forzar la creación de este conector).
+                            
+                            <div class="image-container">
+                                Dirijase al menu <strong>My flows</strong>
+                                <img src="images/seccion3/conexion-mail-1.png" alt="Pantalla de inicio de Power Automate">
+                                <div class="image-label">Conexión 3.1: Pantalla de inicio de Power Automate</div>
+                            </div>
+                            <div class="image-container">
+                                Luego clic en “New flow” y seleccione la opción “Instant cloud flow”.
+                                <img src="images/seccion3/conexion-mail-2.png" alt="Pantalla de inicio de Power Automate">
+                                <div class="image-label">Conexión 3.2: Pantalla de inicio de Power Automate</div>
+                            </div>
+                            <div class="image-container">
+                                Seleccione la opción “Manually trigger a flow” y luego “Create”.
+                                <img src="images/seccion3/conexion-mail-3.png" alt="Pantalla de inicio de Power Automate">
+                                <div class="image-label">Conexión 3.3: Pantalla de inicio de Power Automate</div>
+                            </div>
+                            <div class="image-container">
+                                Aparecerá lo siguiente, de clic en el botón “+”.
+                                <img src="images/seccion3/conexion-mail-4.png" alt="Pantalla de inicio de Power Automate">
+                                <div class="image-label">Conexión 3.4: Pantalla de inicio de Power Automate</div>
+                            </div>
+                            <div class="image-container">
+                                Escriba en el buscador “Send a mail notification (V3)” y seleccione esa opción.
+                                <img src="images/seccion3/conexion-mail-5.png" alt="Pantalla de inicio de Power Automate">
+                                <div class="image-label">Conexión 3.5: Pantalla de inicio de Power Automate</div>
+                            </div>
+                            <div class="image-container">
+                                Aceptamos los términos y condiciones para recibir las notificaciones en nuestro correo.
+                                <img src="images/seccion3/conexion-mail-6.png" alt="Pantalla de inicio de Power Automate">
+                                <div class="image-label">Conexión 3.6: Pantalla de inicio de Power Automate</div>
+                            </div>
+                            <div class="image-container">
+                                Luego clic en “Create new”, para crear la conexión.
+                                <img src="images/seccion3/conexion-mail-7.png" alt="Pantalla de inicio de Power Automate">
+                                <div class="image-label">Conexión 3.7: Pantalla de inicio de Power Automate</div>
+                            </div>
+                            <div class="image-container">
+                                Luego de creada la conexión, este apartado ya no es necesario así que damos clic en el botón “<- Back” en la esquina superior izquierda.
+                                <img src="images/seccion3/conexion-mail-8.png" alt="Pantalla de inicio de Power Automate">
+                                <div class="image-label">Conexión 3.8: Pantalla de inicio de Power Automate</div>
+                            </div>
+                            <div class="image-container">
+                                Aceptamos salir sin guardar, pues la conexión ya fue realizada.
+                                <img src="images/seccion3/conexion-mail-9.png" alt="Pantalla de inicio de Power Automate">
+                                <div class="image-label">Conexión 3.9: Pantalla de inicio de Power Automate</div>
+                            </div>
+                        </li>
+                    </ol>
+                </li>
+                <li id="revisar-conexiones">
+                    <strong>Revisar Conexiones:</strong> Navegue a <strong>Mis flujos (My flows)</strong>.
+                    <div class="image-container">
+                        Vamos al menú “Connections” y deberíamos ver las 3 conexiones con Status “Connected”.
+                        <img src="images/seccion3/conexion-done.png" alt="Interfaz de conexiones creadas.">
+                        <div class="image-label">Figura 3.4: Verificación técnica de conexiones activas</div>
+                    </div>
+                </li>
+                <li id="preparacion-archivo"><strong>Preparación del Archivo:</strong> Localice el paquete de la solución en su equipo local: <code>LOGSQAV2.2_20260526205104.zip</code>.</li>
+                <li id="ejecutar-importacion">
+                    <strong>Ejecutar Importación:</strong> Navegue a <strong>Mis flujos (My flows)</strong>, haga clic en <strong>Importar</strong> y seleccione la opción <strong>Importar paquete (heredado)</strong>. Suba el archivo ZIP descargado anteriormente.
+                    <div class="image-container">
+                        <img src="images/seccion3/import-flow-1.png" alt="Interfaz de carga de paquete">
+                        <div class="image-label">Figura 3.6.1: Selección de opción Importar Paquete</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/seccion3/import-flow-2.png" alt="Interfaz de carga de paquete">
+                        <div class="image-label">Figura 3.6.2: Carga del archivo comprimido .zip</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/seccion3/import-flow-3.png" alt="Interfaz de carga de paquete">
+                        <div class="image-label">Figura 3.6.3: Procesamiento del paquete por el portal</div>
+                    </div>
+                </li>
+                <li id="asignacion-recursos">
+                    <strong>Asignación de Recursos (Paso Crítico):</strong> El sistema detectará las dependencias originales. Haga clic en el icono de edición de cada recurso marcado en <strong>rojo</strong> y seleccione sus propias conexiones creadas en el paso 3.
+                    <div class="image-container">
+                        <img src="images/seccion3/assing-resources-1.png" alt="Remapeo de conectores">
+                        <div class="image-label">Figura 3.7.1: Identificación de dependencias en conflicto (Rojo)</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/seccion3/assing-resources-2.png" alt="Remapeo de conectores">
+                        <div class="image-label">Figura 3.7.2: Configuración del recurso de Outlook</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/seccion3/assing-resources-3.png" alt="Remapeo de conectores">
+                        <div class="image-label">Figura 3.7.3: Selección de conexión personal de Outlook</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/seccion3/assing-resources-4.png" alt="Remapeo de conectores">
+                        <div class="image-label">Figura 3.7.4: Configuración del recurso Mail</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/seccion3/assing-resources-5.png" alt="Remapeo de conectores">
+                        <div class="image-label">Figura 3.7.5: Configuración del recurso Office 365 Users</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/seccion3/assing-resources-6.png" alt="Remapeo de conectores">
+                        <div class="image-label">Figura 3.7.6: Validación de todos los recursos en estado "Create as new"</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/seccion3/assing-resources-7.png" alt="Remapeo de conectores">
+                        <div class="image-label">Figura 3.7.7: Ejecución del proceso de Importación Final</div>
+                    </div>
+                </li>
+
+                <li id="activacion-final">
+                    <strong>Activación de la Automatización:</strong> Una vez finalizada la importación, el flujo se creará en estado desactivado. Busque <strong>"METRICA LOGS v2.3"</strong> en su lista de flujos, haga clic en los tres puntos (...) y seleccione <strong>Activar (Turn on)</strong>.
+                    <div class="image-container">
+                        <img src="images/seccion3/activation-1.png" alt="Activación del flujo en el portal">
+                        <div class="image-label">Figura 3.8.1: Navegación a la lista de flujos de nube</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/seccion3/activation-2.png" alt="Activación del flujo en el portal">
+                        <div class="image-label">Figura 3.8.2: Ubicación del flujo importado en estado Off</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/seccion3/activation-3.png" alt="Activación del flujo en el portal">
+                        <div class="image-label">Figura 3.8.3: Ejecución del comando "Turn On"</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/seccion3/activation-4.png" alt="Activación del flujo en el portal">
+                        <div class="image-label">Figura 3.8.4: Confirmación de activación del flujo</div>
+                    </div>
+                    <div class="image-container">
+                        <img src="images/seccion3/activation-5.png" alt="Activación del flujo en el portal">
+                        <div class="image-label">Figura 3.8.5: Confirmación de flujo habilitado para producción</div>
+                    </div>
+                </li>
+            </ol>
+        </section>
+
+        <section id="config-rules">
+            <h2>4. Configuración adicional para reglas con correos de ControlDesk.</h2>
+            <p>Si usted tiene una <strong>Regla de Outlook</strong> para los correos de <code>controldesk@gbm.net</code>, se redirijan a una <strong>Carpeta</strong> en especifico; es <strong>estrictamente necesario</strong> realizar el siguiente ajuste manual tras la importación:</p>
+            <ol>
+                <li id="rules-step-1">
+                    <strong>Localización del Flujo:</strong> Diríjase a la sección de "Mis flujos" y busque la Automatización recién importada.
+                    <div class="image-container">
+                        <img src="images/seccion4/flow-rules-1.png" alt="Localización del flujo rules">
+                        <div class="image-label">Figura 4.1: Ubicación del flujo en el listado de Power Automate</div>
+                    </div>
+                </li>
+                <li id="rules-step-2">
+                    <strong>Ingreso al Editor:</strong> Haga clic en el botón <strong>Editar (Edit)</strong> ubicado en la barra de herramientas superior para abrir el diseñador.
+                    <div class="image-container">
+                        <img src="images/seccion4/flow-rules-2.png" alt="Acceso al editor">
+                        <div class="image-label">Figura 4.2: Selección del comando Editar</div>
+                    </div>
+                </li>
+                <li id="rules-step-3">
+                    <strong>Identificación del Trigger:</strong> Ubique el nodo raíz del flujo denominado <code>Cuando llega un nuevo correo electrónico (V3)</code>.
+                    <div class="image-container">
+                        <img src="images/seccion4/flow-rules-3.png" alt="Identificación del trigger">
+                        <div class="image-label">Figura 4.3: Vista estructural de la lógica del flujo</div>
+                    </div>
+                </li>
+                <li id="rules-step-4">
+                    <strong>Expansión del Disparador:</strong> Haga clic sobre el encabezado del trigger para desplegar el panel de propiedades.
+                    <div class="image-container">
+                        <img src="images/seccion4/flow-rules-4.png" alt="Expansión del trigger">
+                        <div class="image-label">Figura 4.4: Acceso a los parámetros del Desencadenador institucional</div>
+                    </div>
+                </li>
+                <li id="rules-step-5">
+                    <strong>Habilitación del Parámetro:</strong> Asegúrese de que el parámetro <strong>Folder</strong> (Carpeta) esté habilitado en las opciones avanzadas.
+                    <div class="image-container">
+                        <img src="images/seccion4/flow-rules-5.png" alt="Campo carpeta visible">
+                        <div class="image-label">Figura 4.5: Activación del campo de ruta en el Trigger</div>
+                    </div>
+                </li>
+                <li id="rules-step-6">
+                    <strong>Activación del Selector:</strong> Haga clic en el icono de la carpeta azul situado en el extremo derecho del campo de texto.
+                    <div class="image-container">
+                        <img src="images/seccion4/flow-rules-6.png" alt="Icono de carpeta">
+                        <div class="image-label">Figura 4.6: Exploración del buzón de correo para buscar la carpeta de ControlDesk</div>
+                    </div>
+                </li>
+                <li id="rules-step-7">
+                    <strong>Navegación Inicial:</strong> Se desplegará su estructura de Outlook; busque la carpeta principal de su Bandeja de Entrada.
+                    <div class="image-container">
+                        <img src="images/seccion4/flow-rules-7.png" alt="Navegación inicial">
+                        <div class="image-label">Figura 4.7: Confirmación de carpeta seleccionada en el disparador principal</div>
+                    </div>
+                </li>
+                <li id="rules-step-8">
+                    <strong>Lógica de Término:</strong> Ubique las acciones que verifican si el caso ha sido marcado como "Completado" en ControlDesk.
+                    <div class="image-container">
+                        <img src="images/seccion4/flow-rules-8.png" alt="Búsqueda de subcarpeta">
+                        <div class="image-label">Figura 4.8: Estructura de validación para SR e Incidentes</div>
+                    </div>
+                </li>
+                <li id="rules-step-9">
+                    <strong>Selección de Destino:</strong> Localice y haga clic directamente sobre el nombre de la carpeta donde llegan sus tickets de ControlDesk.
+                    <div class="image-container">
+                        <img src="images/seccion4/flow-rules-9.png" alt="Selección de carpeta">
+                        <div class="image-label">Figura 4.9: Habilitación de carpeta en la acción getCompletedSR</div>
+                    </div>
+                </li>
+                <li id="rules-step-10">
+                    <strong>Confirmación Visual:</strong> Asegúrese de que el campo "Carpeta" refleje ahora la ruta completa de la carpeta seleccionada.
+                    <div class="image-container">
+                        <img src="images/seccion4/flow-rules-10.png" alt="Validación de ruta">
+                        <div class="image-label">Figura 4.10: Selección de carpeta institucional para Service Requests</div>
+                    </div>
+                </li>
+                <li id="rules-step-11">
+                    <strong>Chequeo de Conexiones:</strong> Revise que no existan iconos de advertencia en el trigger, lo que indicaría un problema de permisos.
+                    <div class="image-container">
+                        <img src="images/seccion4/flow-rules-11.png" alt="Validación de conexiones">
+                        <div class="image-label">Figura 4.11: Verificación de filtros de búsqueda para SR</div>
+                    </div>
+                </li>
+                <li id="rules-step-12">
+                    <strong>Validación Lógica:</strong> Utilice el botón <strong>Flow Checker</strong> en la parte superior para descartar errores de sintaxis.
+                    <div class="image-container">
+                        <img src="images/seccion4/flow-rules-12.png" alt="Flow Checker">
+                        <div class="image-label">Figura 4.12: Habilitación de carpeta en la acción getCompletedIN</div>
+                    </div>
+                </li>
+                <li id="rules-step-13">
+                    <strong>Persistencia de Cambios:</strong> Haga clic en el botón <strong>Guardar (Save)</strong> para aplicar la nueva configuración a la nube.
+                    <div class="image-container">
+                        <img src="images/seccion4/flow-rules-13.png" alt="Botón guardar">
+                        <div class="image-label">Figura 4.13: Selección de carpeta institucional para Incidentes</div>
+                    </div>
+                </li>
+                <li id="rules-step-14">
+                    <strong>Verificación de Guardado:</strong> Espere a recibir el mensaje de confirmación "Your flow is ready to go".
+                    <div class="image-container">
+                        <img src="images/seccion4/flow-rules-14.png" alt="Mensaje de éxito">
+                        <div class="image-label">Figura 4.14: Verificación de filtros de búsqueda para Incidentes</div>
+                    </div>
+                </li>
+                <li id="rules-step-15">
+                    <strong>Finalización de Edición:</strong> Haga clic en la flecha de retroceso para salir del modo edición y volver a la vista general.
+                    <div class="image-container">
+                        <img src="images/seccion4/flow-rules-15.png" alt="Salida del diseñador">
+                        <div class="image-label">Figura 4.15: Ejecución del guardado de cambios</div>
+                    </div>
+                </li>
+                <li id="rules-step-16">
+                    <strong>Activación de Producción:</strong> Valide que el estado del flujo indique "On" para asegurar que el monitoreo sea inmediato.
+                    <div class="image-container">
+                        <img src="images/seccion4/flow-rules-16.png" alt="Estado activado">
+                        <div class="image-label">Figura 4.16: Confirmación de guardado exitoso</div>
+                    </div>
+                </li>
+                <li id="rules-step-17">
+                    <strong>Activación de Producción:</strong> Valide que el estado del flujo indique "On" para asegurar que el monitoreo sea inmediato.
+                    <div class="image-container">
+                        <img src="images/seccion4/flow-rules-17.png" alt="Estado activado">
+                        <div class="image-label">Figura 4.17: Verificación del estado activo (On) para producción</div>
+                    </div>
+                </li>
+            </ol>
+            <div class="note-warning">
+                <strong>⚠️ Aviso Técnico:</strong> Sin esta configuración manual, el flujo buscará correos únicamente en la <em>Bandeja de Entrada</em> por defecto. Si sus correos son movidos automáticamente por Outlook a otra carpeta, el flujo nunca se activará.
+            </div>
+        </section>
+
+        <section id="troubleshooting">
+            <h2>5. Guía de Solución de Problemas (Troubleshooting)</h2>
+            <p>A continuación se detallan los escenarios más comunes que pueden interrumpir la automatización. Esta lista no pretende ser exhaustiva, sino servir como base para <strong>identificar áreas de mejora en futuros lanzamientos</strong>.</p>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Escenario</th>
+                            <th>Causa Probable</th>
+                            <th>Solución Temporal / Mitigación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>El flujo deja de disparar alertas</strong></td>
+                            <td>Expiración de credenciales o tokens de GBM en los conectores.</td>
+                            <td>Vaya a <strong>Datos > Conexiones</strong> y use "Corregir conexión".</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Omisión de tickets asignados</strong></td>
+                            <td>Reglas de Outlook locales mueven el correo antes de procesarse.</td>
+                            <td>Use la versión <strong><a href="#config-rules" style="color: inherit; font-weight: bold;">Sección 4: Reglas de correo ControlDesk</a></strong> o desactive sus reglas para ControlDesk.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ID de Ticket no identificado</strong></td>
+                            <td>Cambios estructurales en el formato de correo de ControlDesk.</td>
+                            <td>Reportar el caso para actualizar la lógica de extracción (Regex).</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Recordatorios de casos cerrados</strong></td>
+                            <td>Retraso en la recepción del correo de "Completado".</td>
+                            <td>Validar estado en portal; se mejorará la validación de estado en la v2.3.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="note-danger">
+                <strong>🆘 Procedimiento de Emergencia y Recuperación:</strong><br>
+                Si detecta que la automatización genera errores críticos o interrupciones graves en su flujo de trabajo, diríjase a <strong>Mis flujos</strong> en Power Automate, localice el proceso y seleccione <strong>Desactivar (Turn off)</strong> inmediatamente.<br><br>
+                Como medida de resolución principal ante fallas persistentes, se recomienda <strong>eliminar la automatización existente</strong> y realizar una importación limpia de la última versión disponible. Por favor, remítase a la <a href="#importacion" style="color: inherit; font-weight: bold;">Sección 3: Guía de Importación</a> para repetir el proceso de configuración desde cero.
+            </div>
+
+            <div class="note-warning">
+                <strong>⚠️ Advertencia de Continuidad:</strong><br>
+                Tenga en cuenta que al desactivar la automatización, <strong>se cancelan de inmediato todos los flujos que se encuentren actualmente en ejecución</strong> (es decir, los casos que están esperando sus 2 o 6 días para el recordatorio). El seguimiento de esos casos se perderá definitivamente y la herramienta solo volverá a monitorear los <strong>casos nuevos</strong> que sean asignados a partir del momento en que reactive el flujo.
+            </div>
+
+            <div class="note-warning">
+                <strong>📢 Compromiso con la Calidad:</strong><br>
+                Si encuentra un comportamiento inesperado, por favor notifíquelo. El objetivo no es que usted resuelva el problema técnico, sino documentarlo para asegurar que la próxima versión de la herramienta sea más robusta y eficiente para todo el equipo.
+            </div>
+        </section>
+
+        <section id="descarga">
+            <h2>6. Descarga de Automatización</h2>
+            <p>Seleccione el paquete de automatización que mejor se adapte a la organización de su correo corporativo. Es vital identificar si usted utiliza reglas de movimiento automático para los correos de ControlDesk.</p>
+            
+            <div class="note-warning">
+                <strong>📌 Recordatorio de Post-Configuración:</strong><br>
+                Si usted utiliza reglas en Outlook para organizar sus correos en carpetas, recuerde que tras realizar la importación (Sección 3), es <strong>indispensable</strong> seguir la guía detallada en la <a href="#config-rules" style="color: inherit; font-weight: bold;">Sección 4: Reglas de correo ControlDesk</a> para que el flujo pueda monitorear la carpeta correcta.
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Versión</th>
+                            <th>Configuración de Correo</th>
+                            <th>Estado</th>
+                            <th>Última Actualización</th>
+                            <th style="text-align: center;">Acceso</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>v2.3</strong></td>
+                            <td>Bandeja de Entrada (Inbox)</td>
+                            <td><span style="color: #2f855a; font-weight: 600;">● Estable</span></td>
+                            <td>26/05/2026</td>
+                            <td style="text-align: center;">
+                                <a href="https://gbmcorp-my.sharepoint.com/:u:/r/personal/daraya_gbm_net/Documents/METRICA-LOGS/METRICALOGSv2.3.zip?e=4%3a19bbc799c22d4ca38fb01f10508de38d&web=1&sharingv2=true&fromShare=true&at=9&xsdata=MDV8MDJ8REFyYXlhQGdibS5uZXR8YzIzNWI3OTllMmY0NDFjYTYyZGUwOGRlYmRlYjcxYTh8OTUwMjhhMTRkMmY5NDNjMGJjNzM0MmE0YmU3YzA0OTJ8MHwwfDYzOTE1NzAxNjE1NTc3NTg3MXxVbmtub3dufFRXRnBiR1pzYjNkOGV5SkZiWEIwZVUxaGNHa2lPblJ5ZFdVc0lsWWlPaUl3TGpBdU1EQXdNQ0lzSWxBaU9pSlhhVzR6TWlJc0lrRk9Jam9pVFdGcGJDSXNJbGRVSWpveWZRPT18MHx8fA%3d%3d&sdata=K3E3eWpFNS9ZZEZvcGRldm9MSWc1cWg5UEJtNktMRXliRVJPWWk4K3hYST0%3d" class="btn-download">
+                                    <svg class="icon-download" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                                    Descargar .zip
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>v2.4</strong></td>
+                            <td>TBD</td>
+                            <td><span style="color: #ed8936; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">○ En Desarrollo</span></td>
+                            <td>TBD</td>
+                            <td style="text-align: center;">
+                                <span class="status-upcoming">EN PROCESO</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="note-warning">
+                <strong>Nota importante:</strong><br>
+                No descomprima el archivo .zip descargado. Este debe ser cargado directamente en la plataforma tal como se indica en la guía técnica.
+            </div>
+        </section>
+
+        <section id="equipo">
+            <h2>7. Equipo de Desarrollo</h2>
+
+            <div class="note">
+                <strong>Autor:</strong> Dario Araya (daraya)
+            </div>
+
+            <p>Agradecer a los compañeros del equipo de QA, quienes han dedicado parte de su tiempo libre para probar, validar y asegurar la calidad de esta automatización:</p>
+            <ul class="qa-list">
+                <li class="qa-tag">
+                    <span>Francisco Ochoa</span>
+                    <span class="qa-email-display">fochoa@gbm.net</span>
+                    <a href="mailto:fochoa@gbm.net" class="qa-mail-link" title="Contactar a Francisco">
+                        <svg class="icon-mail" width="16" height="16" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                    </a>
+                </li>
+                <li class="qa-tag">
+                    <span>Maria Jose Salverria</span>
+                    <span class="qa-email-display">mjsalverria@gbm.net</span>
+                    <a href="mailto:mjsalverria@gbm.net" class="qa-mail-link" title="Contactar a Maria">
+                        <svg class="icon-mail" width="16" height="16" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                    </a>
+                </li>
+                <li class="qa-tag">
+                    <span>Fernando Lopez</span>
+                    <span class="qa-email-display">flopez@gbm.net</span>
+                    <a href="mailto:flopez@gbm.net" class="qa-mail-link" title="Contactar a Fernando">
+                        <svg class="icon-mail" width="16" height="16" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                    </a>
+                </li>
+                <li class="qa-tag">
+                    <span>Enrique Alejandro Gonzalez</span>
+                    <span class="qa-email-display">eagonzalez@gbm.net</span>
+                    <a href="mailto:eagonzalez@gbm.net" class="qa-mail-link" title="Contactar a Enrique">
+                        <svg class="icon-mail" width="16" height="16" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                    </a>
+                </li>
+                <li class="qa-tag">
+                    <span>Jose Antonio Orellana</span>
+                    <span class="qa-email-display">jaorellana@gbm.net</span>
+                    <a href="mailto:jaorellana@gbm.net" class="qa-mail-link" title="Contactar a Jose">
+                        <svg class="icon-mail" width="16" height="16" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="note-success">
+                <strong>Nota:</strong><br>
+                ¡Muchas gracias por el apoyo brindado en sus horas fuera de horario! Su feedback ha sido crucial.
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p><strong>GBM</strong> &copy; 2026 • Infraestructure Services | Documentación para Automatización de Metrica Logs.</p>
+        <p>Autor Técnico: Dario Araya (daraya) | Herramienta: Power Automate</p>
+    </footer>
+
+    <script>
+        const menuToggle = document.getElementById('menuToggle');
+        const sideNav = document.getElementById('sideNav');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const backToTopBtn = document.getElementById('backToTop');
+        const sections = document.querySelectorAll('main section');
+        const navLinks = document.querySelectorAll('.side-nav a, .header-download-btn, main a[href^="#"]');
+        
+        // Lógica del Lightbox
+        const imageModal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImg');
+
+        document.querySelectorAll('.image-container img').forEach(img => {
+            img.addEventListener('click', () => {
+                modalImg.src = img.src;
+                imageModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden'; // Bloquea el scroll del fondo
+            });
+        });
+
+        imageModal.addEventListener('click', () => {
+            imageModal.style.display = 'none';
+            document.body.style.overflow = 'auto'; // Restaura el scroll
+        });
+        
+        function showSection(id) {
+            if (!id) return;
+            const target = document.getElementById(id);
+            if (!target) return;
+
+            // Identificar la sección (página) que contiene al objetivo
+            const targetSection = target.tagName === 'SECTION' ? target : target.closest('section');
+
+            if (targetSection) {
+                sections.forEach(s => s.classList.remove('active'));
+                targetSection.classList.add('active');
+                
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if(link.getAttribute('href') === '#' + id) {
+                        link.classList.add('active');
+                        
+                        // Expandir automáticamente la cadena de padres
+                        let parent = link.parentElement;
+                        while (parent && parent !== sideNav) {
+                            if (parent.classList.contains('has-submenu')) {
+                                parent.classList.add('expanded');
+                            }
+                            parent = parent.parentElement;
+                        }
+                    }
+                });
+
+                if (target === targetSection) {
+                    window.scrollTo(0, 0);
+                } else {
+                    // Scroll suave hacia el elemento específico (sub-sección)
+                    setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+                }
+            }
+        }
+
+        function closeSidebarOnMobile() {
+            if (window.innerWidth <= 992) {
+                document.body.classList.add('sidebar-collapsed');
+            }
+        }
+
+        menuToggle.addEventListener('click', () => {
+            document.body.classList.toggle('sidebar-collapsed');
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            document.body.classList.add('sidebar-collapsed');
+        });
+
+        // Lógica manual para las flechas de expansión
+        document.querySelectorAll('.submenu-arrow').forEach(arrow => {
+            arrow.addEventListener('click', (e) => {
+                e.stopPropagation();
+                arrow.parentElement.classList.toggle('expanded');
+            });
+        });
+
+        // Lógica para mostrar/ocultar el botón "Volver arriba" y su funcionalidad
+        window.addEventListener('scroll', () => {
+            if (window.innerWidth <= 992 && window.scrollY > 300) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+        });
+
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href').substring(1);
+                showSection(targetId);
+                closeSidebarOnMobile();
+            });
+        });
+
+        showSection('introduccion');
+    </script>
+</body>
+</html>
