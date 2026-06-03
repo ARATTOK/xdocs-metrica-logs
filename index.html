@@ -1058,7 +1058,7 @@
                 <li><strong>1. Identificación:</strong> El flujo extrae el ID del caso y detecta si es un <strong>Incidente</strong> o un <strong>Service Request</strong>.</li>
                 <li><strong>2. Espera Preventiva:</strong> Se activa un temporizador que "duerme" el flujo, esperando a que se cumpla el plazo segun sea el tipo de caso.</li>
                 <li><strong>3. Validación y Alerta:</strong> 24h antes de que el SLA expire, el flujo se "despierta" y envía el recordatorio de logs a su bandeja de entrada.</li>
-                <li><strong>4. Actualización por Respuesta:</strong> Al recibir la alerta, usted puede simplemente <strong>responder (Reply)</strong> al correo; el sistema procesará su mensaje y actualizará los logs en ControlDesk automáticamente.</li>
+                <li><strong>4. Actualización por Respuesta:</strong> Al recibir la alerta, usted puede simplemente <strong>responder (Reply)</strong> al correo agregando a <strong>controldesk@gbm.net</strong> como destinatario; el sistema procesará su mensaje y actualizará los logs en ControlDesk automáticamente.</li>
                 <li><strong>5. Terminación Inteligente:</strong> Si el flujo detecta un correo de <code>controldesk@gbm.net</code> indicando que el caso ha sido <strong>Completado</strong>, la automatización se detiene para ese caso específico.</li>
             </ul>
 
@@ -1744,6 +1744,13 @@
                 } else {
                     // Scroll suave hacia el elemento específico (sub-sección)
                     setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+                }
+
+                // Ocultar botón de descarga si ya estamos en la sección de descarga
+                if (targetSection.id === 'descarga') {
+                    downloadBtn.style.display = 'none';
+                } else {
+                    downloadBtn.style.display = 'flex';
                 }
             }
         }
