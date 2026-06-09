@@ -211,6 +211,86 @@
             background-image: none;
         }
 
+        /* Estilos para el Video Responsivo en HOME */
+        .video-wrapper {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            background-color: #000;
+            aspect-ratio: 16 / 9;
+            position: relative;
+        }
+
+        .video-wrapper video {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+            border: none;
+        }
+        .video-wrapper iframe {
+            width: 100%;
+            height: 100%;
+            display: block;
+            border: none;
+        }
+
+        .cinema-mode-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            z-index: 10; /* Asegura que esté por encima del iframe */
+            transition: background-color 0.3s ease;
+        }
+
+        .cinema-mode-btn:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .cinema-mode-btn svg {
+            fill: currentColor;
+        }
+
+        .skip-video-btn {
+            position: absolute;
+            bottom: 10px;
+            left: 10px; /* Posicionado en la esquina inferior izquierda */
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            z-index: 10; /* Asegura que esté por encima del iframe */
+            transition: background-color 0.3s ease;
+        }
+
+        .skip-video-btn:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+
+        .home-summary {
+            margin-bottom: 30px;
+        }
+
         main ol > li:not(:last-child)::after {
             content: '';
             position: absolute;
@@ -298,11 +378,11 @@
             border-radius: 4px;
             margin-bottom: 15px;
             cursor: zoom-in;
-            transition: transform 0.2s ease;
+            transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
         }
 
         .image-container img:hover {
-            transform: scale(1.02);
+            transform: scale(1.05);
         }
 
         /* Lightbox Modal */
@@ -932,6 +1012,12 @@
         <h3>Contenido</h3>
         <ul>
             <li>
+                <a href="#home">
+                    <svg class="section-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                    HOME
+                </a>
+            </li>
+            <li>
                 <a href="#introduccion" class="active">
                     <svg class="section-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
                     Proposito
@@ -1016,6 +1102,39 @@
     </nav>
 
     <main>
+        <section id="home">
+            <h2>
+                <svg class="section-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                HOME | Resumen de Automatización
+            </h2>
+            <div class="home-summary">
+                <p>Bienvenido a la documentación oficial de <strong>Metrica Logs</strong>. Este video resume cómo la automatización optimiza la gestión de tickets, garantizando el cumplimiento de los SLA y simplificando el reporte de logs en ControlDesk.</p>
+            </div>
+            
+            <div class="video-wrapper">
+                <iframe 
+                    class="lazy-iframe" 
+                    data-src="https://www.youtube.com/embed/YLfU3QdDwjI" 
+                    title="GBM Metrica Logs Intro" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowfullscreen>
+                </iframe>
+                <button class="cinema-mode-btn" title="Modo Cine">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+                    </svg>
+                </button>
+                <button class="skip-video-btn" title="Saltar Video">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/>
+                    </svg>
+                    Saltar Video
+                </button>
+            </div>
+        </section>
+
         <section id="introduccion">
             <h2>
                 <svg class="section-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
@@ -1090,8 +1209,8 @@
             </div>
 
             <div class="image-container">
-                <img src="images/flujograma.png" alt="Flujograma de procesos de la automatización">
-                <div class="image-label">Figura 2.0: Flujograma de procesos de la automatización</div>
+                <img src="images/seccion2/Ciclo_vida_del_ticket_automatizado.png" alt="Ciclo de vida del ticket automatizado">
+                <div class="image-label">Figura 2.0: Ciclo de vida del ticket automatizado</div>
             </div>
 
             <div class="note-success">
@@ -1113,18 +1232,18 @@
 
             <div class="image-container">
                 <img src="images/seccion2/log-example-sr.png" alt="Ejemplo de Notificación de Recordatorio">
-                <div class="image-label">Figura 2.1: Ejemplo de Notificación de Recordatorio</div>
+                <div class="image-label">Figura 2.2: Ejemplo de Notificación de Recordatorio</div>
             </div>
 
             <p>Una de las funciones más potentes de esta automatización es la <strong>Actualización por Respuesta (Reply)</strong>. Si usted responde al correo de recordatorio e incluye a <code>controldesk@gbm.net</code> en los destinatarios, <strong>ControlDesk</strong> procesará el cuerpo de su correo como un log oficial del caso, cerrando el ciclo de actualización de forma inmediata.</p>
 
             <div class="image-container">
                 <img src="images/seccion2/reply-update-logs.png" alt="Ejemplo de Respuesta para Actualización de Logs">
-                <div class="image-label">Figura 2.2: Ejemplo de Respuesta para Actualización de Logs</div>
+                <div class="image-label">Figura 2.3: Ejemplo de Respuesta para Actualización de Logs</div>
             </div>
             <div class="image-container">
                 <img src="images/seccion2/reply-update-controldesk.png" alt="Logs actualizados para el caso en ControlDesk">
-                <div class="image-label">Figura 2.3: Logs actualizados en ControlDesk</div>
+                <div class="image-label">Figura 2.4: Logs actualizados en ControlDesk</div>
             </div>
         </section>
 
@@ -1136,7 +1255,7 @@
             <p>Siga cuidadosamente este procedimiento técnico para implementar la automatización en su entorno corporativo de Power Automate. Este proceso asegura que el flujo opere bajo su identidad digital de GBM.</p>
 
             <div class="note-warning">
-                <strong>💡 Verificación de Versión:</strong> Antes de proceder, verifique en la sección de <a href="#descarga" style="color: inherit; font-weight: bold;">Descargar</a> cuál versión se aplica mejor a su necesidad. Si utiliza una regla para que los correos de <code>controldesk@gbm.net</code> se guarden en la carpeta <strong>"CONTROL DESK"</strong>, debe instalar la versión <strong>v2.x-rules</strong>; de lo contrario, utilice la versión estándar <strong>v2.x</strong>.
+                <strong>💡 Verificación de Versión:</strong> Antes de proceder, verifique en la sección de <a href="#descarga" style="color: inherit; font-weight: bold;">Descarga</a> cuál versión se aplica mejor a su necesidad. Si utiliza una regla para que los correos de <code>controldesk@gbm.net</code> se guarden en la carpeta <strong>"CONTROLDESK"</strong>; debe instalar la versión <strong>v2.x-rules</strong>; de lo contrario, utilice la versión estándar <strong>v2.x</strong>.
             </div>
 
             <ol>
@@ -1351,7 +1470,7 @@
 
             <div class="note-success">
                 <strong>✅ ¿Cuándo NO es necesario seguir estos pasos?</strong><br>
-                Si sus correos de <code>controldesk@gbm.net</code> permanecen en su <strong>Bandeja de Entrada (Inbox)</strong> y NO utiliza ninguna regla de Outlook para moverlos a carpetas personalizadas (como una carpeta llamada "CONTROL DESK"), <strong>no es necesario</strong> que realice estos ajustes. En este escenario, la configuración por defecto de la automatización es suficiente para detectar los tickets.
+                Si sus correos de <code>controldesk@gbm.net</code> permanecen en su <strong>Bandeja de Entrada (Inbox)</strong> y NO utiliza ninguna regla de Outlook para moverlos a carpetas personalizadas (como una carpeta llamada "CONTROLDESK"), <strong>no es necesario</strong> que realice estos ajustes. En este escenario, la configuración por defecto de la automatización es suficiente para detectar los tickets.
             </div>
 
             <ol>
@@ -1545,6 +1664,11 @@
             </h2>
             <p>Seleccione el paquete de automatización que mejor se adapte a la organización de su correo corporativo. Es vital identificar si usted utiliza reglas de movimiento automático para los correos de ControlDesk.</p>
             
+            <div class="image-container">
+                <img src="images/descargar/Guía_Comparativa_Metrica_Logs_v2.3.png" alt="Guía Comparativa de Versiones Metrica Logs">
+                <div class="image-label">Figura 5.0: Guía comparativa para selección de versión</div>
+            </div>
+            
             <div class="note-warning">
                 <strong>📌 Recordatorio de Post-Configuración:</strong><br>
                 Si usted utiliza reglas en Outlook para organizar sus correos en carpetas, recuerde que tras realizar la importación (Guia de Instalacion), es <strong>indispensable</strong> configurar las <a href="#config-rules" style="color: inherit; font-weight: bold;">Reglas de correo</a> para que el flujo pueda monitorear la carpeta correcta.
@@ -1583,10 +1707,10 @@
                             <td>
                                 <div class="tooltip">
                                     <strong>v2.3-rules</strong>
-                                    <span class="tooltip-text">Versión especializada para quienes usan reglas de Outlook para mover correos a la carpeta "CONTROL DESK".</span>
+                                    <span class="tooltip-text">Versión especializada para quienes usan reglas de Outlook para mover correos a la carpeta "CONTROLDESK".</span>
                                 </div>
                             </td>
-                            <td>Carpeta "CONTROL DESK"</td>
+                            <td>Carpeta "CONTROLDESK"</td>
                             <td><span style="color: #2f855a; font-weight: 600;">● Estable</span></td>
                             <td>26/05/2026</td>
                             <td style="text-align: center;">
@@ -1615,7 +1739,7 @@
             </div>
 
             <div class="note">
-                <strong>💡 Nota de Versión:</strong> Esta versión <strong>v2.3-rules</strong> es exclusivamente para las personas que tengan una regla en su correo para que los correos enviados por <code>controldesk@gbm.net</code> se guarden en la carpeta <strong>"CONTROL DESK"</strong>. Solo en estos casos esta versión aplica para ellos; en caso de no ser así, descargue la versión normal <strong>v2.3</strong>.
+                <strong>💡 Nota de Versión:</strong> Esta versión <strong>v2.3-rules</strong> es exclusivamente para las personas que tengan una regla en su correo para que los correos enviados por <code>controldesk@gbm.net</code> se guarden en la carpeta <strong>"CONTROLDESK"</strong>. Solo en estos casos esta versión aplica para ellos; en caso de no ser así, descargue la versión normal <strong>v2.3</strong>.
             </div>
 
             <div class="note-warning">
@@ -1811,7 +1935,57 @@
             });
         });
 
-        showSection('introduccion');
+        // Implementación de Lazy Loading para Videos e Iframes (YouTube)
+        document.addEventListener("DOMContentLoaded", function() {
+            const lazyMedia = [].slice.call(document.querySelectorAll(".lazy-video, .lazy-iframe"));
+
+            if ("IntersectionObserver" in window) {
+                const mediaObserver = new IntersectionObserver(function(entries, observer) {
+                    entries.forEach(function(entry) {
+                        if (entry.isIntersecting) {
+                            const element = entry.target;
+                            element.src = element.dataset.src;
+                            // Si es un tag <video> local, necesitamos cargar el recurso
+                            if (element.tagName === "VIDEO") element.load();
+                            element.classList.remove("lazy-video", "lazy-iframe");
+                            mediaObserver.unobserve(element);
+                        }
+                    });
+                });
+
+                lazyMedia.forEach(function(media) {
+                    mediaObserver.observe(media);
+                });
+            }
+        });
+        showSection('home');
+
+        // Cinema Mode Button Logic
+        const cinemaModeBtn = document.querySelector('.cinema-mode-btn');
+        const youtubeIframe = document.querySelector('.video-wrapper iframe');
+
+        if (cinemaModeBtn && youtubeIframe) {
+            cinemaModeBtn.addEventListener('click', () => {
+                if (youtubeIframe.requestFullscreen) {
+                    youtubeIframe.requestFullscreen();
+                } else if (youtubeIframe.mozRequestFullScreen) { /* Firefox */
+                    youtubeIframe.mozRequestFullScreen();
+                } else if (youtubeIframe.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+                    youtubeIframe.webkitRequestFullscreen();
+                } else if (youtubeIframe.msRequestFullscreen) { /* IE/Edge */
+                    youtubeIframe.msRequestFullscreen();
+                }
+            });
+        }
+
+        // Skip Video Button Logic
+        const skipVideoBtn = document.querySelector('.skip-video-btn');
+
+        if (skipVideoBtn) {
+            skipVideoBtn.addEventListener('click', () => {
+                showSection('instalacion'); // Navega a la sección de instalación
+            });
+        }
     </script>
 </body>
 </html>
