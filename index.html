@@ -264,6 +264,43 @@
             fill: currentColor;
         }
 
+        .next-steps-container {
+            margin-top: 40px;
+            padding: 30px;
+            background-color: var(--primary-light);
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .next-steps-container p {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .cta-start-guide {
+            display: inline-flex;
+            align-items: center;
+            background: var(--primary);
+            color: white !important;
+            padding: 14px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px rgba(0, 45, 91, 0.2);
+        }
+
+        .cta-start-guide:hover {
+            background: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 45, 91, 0.3);
+        }
+
         .skip-video-btn {
             position: absolute;
             bottom: 10px;
@@ -1133,6 +1170,16 @@
                     Saltar Video
                 </button>
             </div>
+
+            <div class="next-steps-container">
+                <p>¿Listo para optimizar su flujo de trabajo? El siguiente paso es realizar la configuración técnica.</p>
+                <a href="#instalacion" class="cta-start-guide">
+                    Comenzar Guía de Instalación
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" style="margin-left: 10px;">
+                        <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+                    </svg>
+                </a>
+            </div>
         </section>
 
         <section id="introduccion">
@@ -1695,7 +1742,7 @@
                             </td>
                             <td>Bandeja de Entrada (Inbox)</td>
                             <td><span style="color: #2f855a; font-weight: 600;">● Estable</span></td>
-                            <td>26/05/2026</td>
+                            <td>9/06/2026</td>
                             <td style="text-align: center;">
                                 <a href="https://drive.google.com/file/d/1ERn23-AESjtL4XeLsZYTLN-nTGYSGHRX/view?usp=drive_link" class="btn-download" target="_blank" rel="noopener noreferrer">
                                     <svg class="icon-download" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
@@ -1712,7 +1759,7 @@
                             </td>
                             <td>Carpeta "CONTROLDESK"</td>
                             <td><span style="color: #2f855a; font-weight: 600;">● Estable</span></td>
-                            <td>26/05/2026</td>
+                            <td>9/06/2026</td>
                             <td style="text-align: center;">
                                 <a href="https://drive.google.com/file/d/1Qm3-yFyplo4jLAAvUXxWcYnCFJq7-6h1/view?usp=drive_link" class="btn-download" target="_blank" rel="noopener noreferrer">
                                     <svg class="icon-download" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
